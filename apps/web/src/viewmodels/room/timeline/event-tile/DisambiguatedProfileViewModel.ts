@@ -15,6 +15,7 @@ import { type MouseEvent } from "react";
 
 import { _t } from "../../../../languageHandler";
 import { getUserNameColorClass } from "../../../../utils/FormattingUtils";
+import { getNicknameColorStyle } from "../../../../utils/nicknameColor";
 
 /**
  * Information about a member for disambiguation purposes.
@@ -50,6 +51,8 @@ export interface DisambiguatedProfileViewModelProps {
      * The user's present status.
      */
     userStatus?: UserStatus;
+    /** A validated global nickname colour, if one has been fetched. */
+    nicknameColor?: string;
     /**
      * The fallback name to use if the member's display name is not available.
      */
@@ -84,7 +87,7 @@ export class DisambiguatedProfileViewModel
     private static readonly computeSnapshot = (
         props: DisambiguatedProfileViewModelProps,
     ): DisambiguatedProfileViewSnapshot => {
-        const { member, fallbackName, colored, emphasizeDisplayName, withTooltip, userStatus } = props;
+        const { member, fallbackName, colored, emphasizeDisplayName, withTooltip, userStatus, nicknameColor } = props;
 
         // Compute display name
         const displayName = member?.rawDisplayName || fallbackName;
@@ -118,6 +121,7 @@ export class DisambiguatedProfileViewModel
         return {
             displayName,
             colorClass,
+            displayNameStyle: getNicknameColorStyle(nicknameColor),
             displayIdentifier,
             title,
             emphasizeDisplayName,
@@ -141,9 +145,13 @@ export class DisambiguatedProfileViewModel
 
     public setUserStatus(userStatus?: UserStatus): void {
         this.props.userStatus = userStatus;
-        this.snapshot.merge({
-            userStatus,
-        });
+        this.snapshot.merge({ userStatus });
+    }
+
+    /** Update the validated global nickname colour without changing profile identity data. */
+    public setNicknameColor(nicknameColor?: string): void {
+        this.props.nicknameColor = nicknameColor;
+        this.snapshot.merge({ displayNameStyle: getNicknameColorStyle(nicknameColor) });
     }
 
     public onClick = (evt: MouseEvent<HTMLDivElement>): void => {

@@ -17,6 +17,8 @@ import PresenceLabel from "../../rooms/PresenceLabel";
 import CopyableText from "../../elements/CopyableText";
 import { UserInfoHeaderVerificationView } from "./UserInfoHeaderVerificationView";
 import { useUserStatus } from "../../../../hooks/useUserStatus";
+import { useNicknameColor } from "../../../../hooks/useNicknameColor";
+import { getNicknameColorStyle } from "../../../../utils/nicknameColor";
 
 export interface UserInfoHeaderViewProps {
     member: Member;
@@ -35,6 +37,8 @@ export const UserInfoHeaderView: React.FC<UserInfoHeaderViewProps> = ({
     const avatarUrl = (member as User).avatarUrl;
     const displayName = (member as RoomMember).rawDisplayName;
     const userStatus = useUserStatus(member.userId);
+    const nicknameColor = useNicknameColor(member.userId);
+    const nicknameColorStyle = getNicknameColorStyle(nicknameColor);
 
     let presenceLabel: JSX.Element | undefined;
 
@@ -72,7 +76,15 @@ export const UserInfoHeaderView: React.FC<UserInfoHeaderViewProps> = ({
                 <Flex direction="column" align="center" className="mx_UserInfo_profile">
                     <Heading size="sm" weight="semibold" as="h1" dir="auto">
                         <Flex className="mx_UserInfo_profile_name" direction="row-reverse" align="center">
-                            {displayName}
+                            <span
+                                style={
+                                    nicknameColorStyle
+                                        ? { ...nicknameColorStyle, color: "var(--mx-nickname-color)" }
+                                        : undefined
+                                }
+                            >
+                                {displayName}
+                            </span>
                         </Flex>
                     </Heading>
                     {userStatus && <StatusTextView status={userStatus} />}

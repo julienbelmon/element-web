@@ -15,6 +15,8 @@ import { LinkIcon, UserSolidIcon } from "@vector-im/compound-design-tokens/asset
 import MatrixClientContext from "../../../contexts/MatrixClientContext";
 import { usePermalink } from "../../../hooks/usePermalink";
 import { useUserStatus } from "../../../hooks/useUserStatus";
+import { useNicknameColor } from "../../../hooks/useNicknameColor";
+import { getNicknameColorStyle } from "../../../utils/nicknameColor";
 import RoomAvatar from "../avatars/RoomAvatar";
 import MemberAvatar from "../avatars/MemberAvatar";
 import { _t } from "../../../languageHandler";
@@ -89,7 +91,9 @@ export const Pill: React.FC<PillProps> = ({
     });
     const text = customPillText ?? linkText;
     // Only user pills show a status
-    const userStatus = useUserStatus(type === PillType.UserMention && resourceId !== null ? resourceId : undefined);
+    const userId = type === PillType.UserMention && resourceId !== null ? resourceId : undefined;
+    const userStatus = useUserStatus(userId);
+    const nicknameColorStyle = getNicknameColorStyle(useNicknameColor(userId));
 
     if (!type || !text) {
         return null;
@@ -148,7 +152,12 @@ export const Pill: React.FC<PillProps> = ({
     const pillContent = (
         <>
             {avatar}
-            <span className="mx_Pill_text">{pillText}</span>
+            <span
+                className="mx_Pill_text"
+                style={nicknameColorStyle ? { ...nicknameColorStyle, color: "var(--mx-nickname-color)" } : undefined}
+            >
+                {pillText}
+            </span>
             {userStatus && <span className="mx_Pill_userStatus">{userStatus.emoji}</span>}
         </>
     );

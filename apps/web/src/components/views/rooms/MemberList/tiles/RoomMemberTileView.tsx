@@ -19,6 +19,7 @@ import { InvitedIconView } from "./common/InvitedIconView";
 import { type MemberWithSeparator } from "../../../../viewmodels/memberlist/MemberListViewModel";
 import { DisambiguatedProfileViewModel } from "../../../../../viewmodels/room/timeline/event-tile/DisambiguatedProfileViewModel";
 import { useUserStatus } from "../../../../../hooks/useUserStatus";
+import { useNicknameColor } from "../../../../../hooks/useNicknameColor";
 
 interface IProps {
     /**
@@ -49,6 +50,7 @@ export function RoomMemberTileView(props: IProps): JSX.Element {
     );
     const name = vm.name;
     const userStatus = useUserStatus(member.userId);
+    const nicknameColor = useNicknameColor(member.userId);
     const disambiguatedProfileVM = useCreateAutoDisposedViewModel(
         () =>
             new DisambiguatedProfileViewModel({
@@ -56,11 +58,15 @@ export function RoomMemberTileView(props: IProps): JSX.Element {
                 member,
                 withTooltip: true,
                 userStatus,
+                nicknameColor,
             }),
     );
     useEffect(() => {
         disambiguatedProfileVM.setMember(name, member);
     }, [disambiguatedProfileVM, member, name]);
+    useEffect(() => {
+        disambiguatedProfileVM.setNicknameColor(nicknameColor);
+    }, [disambiguatedProfileVM, nicknameColor]);
     useEffect(() => {
         disambiguatedProfileVM.setUserStatus(userStatus);
     }, [disambiguatedProfileVM, userStatus]);

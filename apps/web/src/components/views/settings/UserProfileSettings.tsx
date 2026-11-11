@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type ChangeEvent, type ReactNode, useCallback, useEffect, useState, useId } from "react";
+import React, { type ChangeEvent, type ReactNode, useCallback, useContext, useEffect, useId, useState } from "react";
 import { logger } from "matrix-js-sdk/src/logger";
 import { EditInPlace, Alert, ErrorMessage } from "@vector-im/compound-web";
 import PopOutIcon from "@vector-im/compound-design-tokens/assets/web/icons/pop-out";
@@ -33,6 +33,13 @@ import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { SettingsSection } from "./shared/SettingsSection.tsx";
 import { SetStatusViewModel } from "../../../viewmodels/status/SetStatusViewModel.ts";
 import SettingsStore from "../../../settings/SettingsStore.ts";
+import { SDKContext } from "../../../contexts/SDKContext.ts";
+import {
+    NICKNAME_COLOR_PALETTE,
+    getNicknameColorStyle,
+    type NicknameColorOption,
+} from "../../../utils/nicknameColor.ts";
+import { useNicknameColor } from "../../../hooks/useNicknameColor.ts";
 
 const SpinnerToast: React.FC<{ children?: ReactNode }> = ({ children }) => (
     <>
@@ -79,6 +86,106 @@ const ManageAccountButton: React.FC<ManageAccountButtonProps> = ({ externalAccou
         {_t("settings|general|oidc_manage_button")}
     </AccessibleButton>
 );
+
+interface NicknameColorSettingProps {
+    displayName: string;
+}
+
+/** Profile-level selector for the optional, globally published nickname colour. */
+const NicknameColorSetting: React.FC<NicknameColorSettingProps> = ({ displayName }) => {
+    const client = useMatrixClientContext();
+    const sdkContext = useContext(SDKContext);
+    const store = sdkContext.client ? sdkContext.nicknameColorStore : undefined;
+    const userId = client.getSafeUserId();
+    const confirmedColor = useNicknameColor(userId);
+    const [supported, setSupported] = useState<boolean>();
+    const [draft, setDraft] = useState<string | undefined>();
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(false);
+    const [success, setSuccess] = useState<string>();
+
+    useEffect(() => {
+        void client
+            .doesServerSupportExtendedProfiles()
+            .then(setSupported)
+            .catch(() => setSupported(false));
+    }, [client]);
+    useEffect(() => setDraft(confirmedColor), [confirmedColor]);
+
+    const save = useCallback(async () => {
+        setSaving(true);
+        setError(false);
+        setSuccess(undefined);
+        try {
+            if (!store) return;
+            if (draft) {
+                await store.setOwnColor(draft);
+                setSuccess(_t("settings|general|nickname_color_saved"));
+            } else {
+                await store.deleteOwnColor();
+                setSuccess(_t("settings|general|nickname_color_reset"));
+            }
+        } catch {
+            setError(true);
+        } finally {
+            setSaving(false);
+        }
+    }, [draft, store]);
+
+    if (supported === false) {
+        return (
+            <div className="mx_UserProfileSettings_nicknameColor_unavailable">
+                {_t("settings|general|nickname_color_unavailable")}
+            </div>
+        );
+    }
+
+    const hasChanges = draft !== confirmedColor;
+    const previewStyle = getNicknameColorStyle(draft);
+    return (
+        <fieldset className="mx_UserProfileSettings_nicknameColor" disabled={supported !== true || saving}>
+            <legend>{_t("settings|general|nickname_color")}</legend>
+            <div className="mx_UserProfileSettings_nicknameColor_help">
+                {_t("settings|general|nickname_color_help")}
+            </div>
+            <div className="mx_UserProfileSettings_nicknameColor_options" role="radiogroup">
+                <label>
+                    <input type="radio" name="nickname-color" checked={!draft} onChange={() => setDraft(undefined)} />
+                    {_t("settings|general|nickname_color_default")}
+                </label>
+                {NICKNAME_COLOR_PALETTE.map((option: NicknameColorOption) => (
+                    <label key={option.value}>
+                        <input
+                            type="radio"
+                            name="nickname-color"
+                            value={option.value}
+                            checked={draft === option.value}
+                            onChange={() => setDraft(option.value)}
+                        />
+                        <span
+                            className="mx_UserProfileSettings_nicknameColor_swatch"
+                            style={{ backgroundColor: option.value }}
+                        />
+                        {option.name}
+                    </label>
+                ))}
+            </div>
+            <div className="mx_UserProfileSettings_nicknameColor_preview">
+                {_t("settings|general|nickname_color_preview")}:{" "}
+                <span style={previewStyle ? { ...previewStyle, color: "var(--mx-nickname-color)" } : undefined}>
+                    {displayName}
+                </span>
+            </div>
+            <AccessibleButton onClick={save} kind="primary" disabled={!hasChanges || saving || supported !== true}>
+                {_t("common|save")}
+            </AccessibleButton>
+            <div aria-live="polite">
+                {error && <ErrorMessage>{_t("settings|general|nickname_color_error")}</ErrorMessage>}
+                {success}
+            </div>
+        </fieldset>
+    );
+};
 
 const SignOutButton: React.FC = () => {
     const client = useMatrixClientContext();
@@ -240,6 +347,7 @@ const UserProfileSettings: React.FC<UserProfileSettingsProps> = ({
                         {userStatusEnabled && <SetStatusView vm={setStatusVM} initialCustomMode={startCustomStatus} />}
                     </Flex>
                 </div>
+                <NicknameColorSetting displayName={displayName} />
                 {avatarError && (
                     <Alert title={_t("settings|general|avatar_upload_error_title")} type="critical">
                         {maxUploadSize === undefined
