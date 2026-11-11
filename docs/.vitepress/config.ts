@@ -142,6 +142,8 @@ export default withMermaid({
                     { text: "Module Release Process", link: "/moduleRelease.md" },
                     { text: "MVVM", link: "/MVVM.md" },
                     { text: "Settings", link: "/settings.md" },
+                    { text: "Nickname colours", link: "/nickname-colors.md" },
+                    { text: "Nickname-colour implementation", link: "/nickname-colors-implementation.md" },
                 ],
             },
             {
