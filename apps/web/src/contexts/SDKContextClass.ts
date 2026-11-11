@@ -20,6 +20,7 @@ import { RoomViewStore } from "../stores/RoomViewStore";
 import SpaceStore from "../stores/spaces/SpaceStore";
 import TypingStore from "../stores/TypingStore";
 import { UserProfilesStore } from "../stores/UserProfilesStore";
+import { NicknameColorStore } from "../stores/NicknameColorStore";
 import { WidgetLayoutStore } from "../stores/widgets/WidgetLayoutStore";
 import { WidgetPermissionStore } from "../stores/widgets/WidgetPermissionStore";
 import WidgetStore from "../stores/WidgetStore";
@@ -72,6 +73,7 @@ export class SDKContextClass {
     protected _LegacyCallHandler?: LegacyCallHandler;
     protected _TypingStore?: TypingStore;
     protected _UserProfilesStore?: UserProfilesStore;
+    protected _NicknameColorStore?: NicknameColorStore;
     protected _ResizeNotifier?: ResizeNotifier;
     protected _MultiRoomViewStore?: MultiRoomViewStore;
     protected _Notifier?: Notifier;
@@ -188,6 +190,14 @@ export class SDKContextClass {
         return this._UserProfilesStore;
     }
 
+    public get nicknameColorStore(): NicknameColorStore {
+        if (!this.client) {
+            throw new Error("Unable to create NicknameColorStore without a client");
+        }
+        this._NicknameColorStore ??= new NicknameColorStore(this.client);
+        return this._NicknameColorStore;
+    }
+
     // This is getting increasingly tenuous to have here but we still have class components so it's
     // awkward to consume multiple contexts in them. This should be replaced with ResizeObservers
     // anyway really.
@@ -232,6 +242,8 @@ export class SDKContextClass {
 
     public onLoggedOut(): void {
         this._UserProfilesStore = undefined;
+        this._NicknameColorStore?.dispose();
+        this._NicknameColorStore = undefined;
         this._client = undefined;
     }
 }

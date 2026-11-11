@@ -15,6 +15,7 @@ import {
     type MemberInfo,
 } from "../../../viewmodels/room/timeline/event-tile/DisambiguatedProfileViewModel";
 import { useUserStatus } from "../../../hooks/useUserStatus";
+import { useNicknameColor } from "../../../hooks/useNicknameColor";
 
 interface IProps {
     /** Stable sender ID for the profile. */
@@ -36,6 +37,7 @@ export default function SenderProfile(props: IProps): JSX.Element {
     const senderId = props.senderId ?? props.member?.userId;
     const member = props.member;
     const userStatus = useUserStatus(senderId);
+    const nicknameColor = useNicknameColor(senderId);
     const isEmote = props.isEmote;
     const onClick = props.onClick;
     const withTooltip = props.withTooltip;
@@ -50,12 +52,16 @@ export default function SenderProfile(props: IProps): JSX.Element {
                 emphasizeDisplayName: true,
                 withTooltip,
                 userStatus,
+                nicknameColor,
             }),
     );
 
     useEffect(() => {
         disambiguatedProfileVM.setUserStatus(userStatus);
     }, [disambiguatedProfileVM, userStatus]);
+    useEffect(() => {
+        disambiguatedProfileVM.setNicknameColor(nicknameColor);
+    }, [disambiguatedProfileVM, nicknameColor]);
     useEffect(() => {
         disambiguatedProfileVM.setMember(senderId ?? "", member);
     }, [disambiguatedProfileVM, member, senderId]);

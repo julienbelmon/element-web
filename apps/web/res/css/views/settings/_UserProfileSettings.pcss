@@ -31,6 +31,45 @@ Please see LICENSE files in the repository root for full details.
         }
     }
 
+    .mx_UserProfileSettings_nicknameColor {
+        margin-top: var(--cpd-space-6x);
+        border: 0;
+        padding: 0;
+
+        legend {
+            font-weight: 600;
+        }
+    }
+
+    .mx_UserProfileSettings_nicknameColor_help,
+    .mx_UserProfileSettings_nicknameColor_preview {
+        margin: var(--cpd-space-2x) 0;
+    }
+
+    .mx_UserProfileSettings_nicknameColor_options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--cpd-space-2x) var(--cpd-space-4x);
+        margin: var(--cpd-space-3x) 0;
+
+        label {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--cpd-space-1x);
+        }
+    }
+
+    .mx_UserProfileSettings_nicknameColor_swatch {
+        width: 16px;
+        height: 16px;
+        border: 1px solid $quinary-content;
+        border-radius: 50%;
+    }
+
+    .mx_UserProfileSettings_nicknameColor_unavailable {
+        margin-top: var(--cpd-space-6x);
+    }
+
     .mx_UserProfileSettings_profile_controls {
         flex-grow: 1;
     }

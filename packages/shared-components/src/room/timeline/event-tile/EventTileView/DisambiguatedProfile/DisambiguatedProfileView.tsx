@@ -27,6 +27,10 @@ export interface DisambiguatedProfileViewSnapshot {
      */
     colorClass?: string;
     /**
+     * A validated custom property style for a global nickname colour.
+     */
+    displayNameStyle?: Readonly<{ "--mx-nickname-color": string }>;
+    /**
      * The formatted user identifier to display when disambiguation is needed.
      * Undefined if disambiguation is not required.
      */
@@ -91,7 +95,8 @@ interface DisambiguatedProfileViewProps {
  */
 export function DisambiguatedProfileView({ vm, className }: Readonly<DisambiguatedProfileViewProps>): JSX.Element {
     const eventPresentationAttributes = useEventPresentationAttributes();
-    const { displayName, colorClass, displayIdentifier, title, emphasizeDisplayName, userStatus } = useViewModel(vm);
+    const { displayName, colorClass, displayNameStyle, displayIdentifier, title, emphasizeDisplayName, userStatus } =
+        useViewModel(vm);
 
     const userStatusEmoji = userStatus && userStatus.emoji;
 
@@ -120,7 +125,11 @@ export function DisambiguatedProfileView({ vm, className }: Readonly<Disambiguat
             tabIndex={vm.onClick ? 0 : undefined}
             {...eventPresentationAttributes}
         >
-            <span className={displayNameClasses} dir="auto">
+            <span
+                className={displayNameClasses}
+                style={displayNameStyle ? { ...displayNameStyle, color: "var(--mx-nickname-color)" } : undefined}
+                dir="auto"
+            >
                 {displayName}
             </span>
             {userStatus && (
